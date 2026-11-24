@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#140e0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>گوی نیایش</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #140e0a;
+      color: #f6efe4;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+    body {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Tahoma, "Segoe UI", sans-serif;
+    }
+    #stage {
+      width: min(100vw, calc(100dvh * 819 / 1024));
+      max-height: 100dvh;
+      aspect-ratio: 819 / 1024;
+      position: relative;
+    }
+    #photo {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: fill;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    #glass {
+      position: absolute;
+      left: 3.6%;
+      top: 1.2%;
+      width: 92.6%;
+      height: 74.05%;
+      border-radius: 50%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #snow {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #sheen {
+      position: absolute;
+      inset: -8%;
+      background: conic-gradient(
+        from 20deg,
+        transparent 0 68%,
+        rgba(255, 248, 230, 0.16) 76%,
+        transparent 84% 100%
+      );
+      animation: turn 36s linear infinite;
+      mix-blend-mode: screen;
+      opacity: 0.85;
+    }
+    #rim {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-shadow:
+        inset 0 0 28px rgba(255, 236, 205, 0.22),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+    @keyframes turn { to { transform: rotate(360deg); } }
+    #play {
+      position: fixed;
+      left: 50%;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 22px;
+      min-height: 48px;
+      background: rgba(28, 18, 12, 0.72);
+      color: #f8f1e6;
+      backdrop-filter: blur(8px);
+      font: inherit;
+      font-size: 15px;
+      letter-spacing: 0;
+      cursor: pointer;
+      z-index: 3;
+    }
+    #play.on { opacity: 0.72; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <img id="photo" src="globe.jpg" alt="گوی برفی نیایش" width="819" height="1024">
+    <div id="glass">
+      <canvas id="snow"></canvas>
+      <div id="sheen"></div>
+      <div id="rim"></div>
+    </div>
+  </div>
+  <button id="play" type="button">کالیمبای آرام</button>
+  <script>
+    const glass = document.getElementById("glass");
+    const canvas = document.getElementById("snow");
+    const ctx = canvas.getContext("2d", { alpha: true });
+    const playBtn = document.getElementById("play");
+
+    const flakes = [];
+    let audio = null;
+    let playing = false;
+
+    function resize() {
+      const r = glass.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, Math.round(r.width * dpr));
+      canvas.height = Math.max(1, Math.round(r.height * dpr));
+    }
+
+    function makeFlake() {
+      const ang = Math.random() * Math.PI * 2;
+      const rad = Math.sqrt(Math.random()) * 0.9;
+      return {
+        x: Math.cos(ang) * rad,
+        y: Math.sin(ang) * rad,
+        orbit: (Math.random() < 0.82 ? 1 : -1) * (0.18 + Math.random() * 0.55),
+        wobble: Math.random() * Math.PI * 2,
+        spin: 0.6 + Math.random() * 1.4,
+        size: 0.6 + Math.random() * 2.3,
+        a: 0.28 + Math.random() * 0.5,
+        warm: Math.random() < 0.22
+      };
+    }
+
+    function countFor() {
+      const w = glass.getBoundingClientRect().width;
+      return w < 520 ? 70 : 110;
+    }
+
+    function draw(now) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const R = Math.min(w, h) / 2;
+      ctx.clearRect(0, 0, w, h);
+      const dt = 0.016;
+      for (const p of flakes) {
+        const c = Math.cos(p.orbit * dt);
+        const s = Math.sin(p.orbit * dt);
+        const x = p.x * c - p.y * s;
+        const y = p.x * s + p.y * c;
+        p.x = x;
+        p.y = y;
+        p.wobble += p.spin * dt;
+        p.x += Math.cos(p.wobble) * 0.0011;
+        p.y += Math.sin(p.wobble * 0.8) * 0.0011;
+        let rad = Math.hypot(p.x, p.y);
+        if (rad > 0.94) {
+          p.x *= 0.9 / rad;
+          p.y *= 0.9 / rad;
+          rad = 0.9;
+        }
+        const face = rad < 0.46 && p.y > -0.28 && p.y < 0.42;
+        const size = (face ? p.size * 0.42 : p.size) * (R / 180);
+        const alpha = face ? p.a * 0.38 : p.a;
+        const px = cx + p.x * R * 0.96;
+        const py = cy + p.y * R * 0.96;
+        ctx.beginPath();
+        ctx.fillStyle = p.warm
+          ? `rgba(255, 214, 150, ${alpha})`
+          : `rgba(255, 252, 246, ${alpha})`;
+        ctx.arc(px, py, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+
+    function ensureFlakes() {
+      const n = countFor();
+      while (flakes.length < n) flakes.push(makeFlake());
+      flakes.length = n;
+    }
+
+    function tone(time, freq, gainValue, dur) {
+      const o1 = audio.createOscillator();
+      const o2 = audio.createOscillator();
+      const g = audio.createGain();
+      const f = audio.createBiquadFilter();
+      o1.type = "sine";
+      o2.type = "triangle";
+      o1.frequency.value = freq;
+      o2.frequency.value = freq * 2.01;
+      f.type = "lowpass";
+      f.frequency.setValueAtTime(2400, time);
+      f.frequency.exponentialRampToValueAtTime(700, time + dur);
+      g.gain.setValueAtTime(0.0001, time);
+      g.gain.exponentialRampToValueAtTime(gainValue, time + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      o1.connect(f);
+      o2.connect(f);
+      f.connect(g);
+      g.connect(audio.master);
+      o1.start(time);
+      o2.start(time);
+      o1.stop(time + dur + 0.05);
+      o2.stop(time + dur + 0.05);
+    }
+
+    function startMusic() {
+      if (playing) {
+        playing = false;
+        clearTimeout(audio.timer);
+        audio.ctx.suspend();
+        playBtn.textContent = "کالیمبای آرام";
+        playBtn.classList.remove("on");
+        return;
+      }
+      if (!audio) {
+        const ctxA = new AudioContext();
+        const master = ctxA.createGain();
+        master.gain.value = 0.22;
+        const delay = ctxA.createDelay();
+        delay.delayTime.value = 0.28;
+        const feedback = ctxA.createGain();
+        feedback.gain.value = 0.22;
+        const wet = ctxA.createGain();
+        wet.gain.value = 0.28;
+        master.connect(ctxA.destination);
+        master.connect(delay);
+        delay.connect(feedback);
+        feedback.connect(delay);
+        delay.connect(wet);
+        wet.connect(ctxA.destination);
+        audio = { ctx: ctxA, master, next: 0, step: 0, timer: 0 };
+        const notes = [329.63, 392, 440, 392, 329.63, 293.66, 329.63, 392, 523.25, 440, 392, 329.63, 293.66, 329.63, 392, 440];
+        const bass = [130.81, 146.83, 130.81, 110];
+        const beat = 0.42;
+        function tick() {
+          if (!playing) return;
+          const t = audio.ctx.currentTime;
+          if (audio.next < t + 0.2) {
+            const n = notes[audio.step % notes.length];
+            tone(audio.next, n, audio.step % 4 === 0 ? 0.16 : 0.11, 1.8);
+            if (audio.step % 4 === 0) tone(audio.next, bass[(audio.step / 4) % bass.length], 0.07, 2.2);
+            audio.step += 1;
+            audio.next += beat;
+          }
+          audio.timer = setTimeout(tick, 80);
+        }
+        audio.tick = tick;
+      }
+      audio.ctx.resume();
+      playing = true;
+      playBtn.textContent = "در حال پخش";
+      playBtn.classList.add("on");
+      if (audio.next < audio.ctx.currentTime) audio.next = audio.ctx.currentTime + 0.05;
+      audio.tick();
+    }
+
+    playBtn.addEventListener("click", startMusic);
+    window.addEventListener("resize", () => { resize(); ensureFlakes(); });
+    document.addEventListener("visibilitychange", () => {
+      if (!audio) return;
+      if (document.hidden && playing) audio.ctx.suspend();
+      else if (!document.hidden && playing) audio.ctx.resume();
+    });
+    resize();
+    ensureFlakes();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>
