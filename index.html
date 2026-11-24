@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#ff85ad">
+  <meta name="theme-color" content="#1a100e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>گوی نیایش</title>
   <style>
@@ -13,100 +13,25 @@
       font-weight: 400;
       font-display: swap;
     }
-    @font-face {
-      font-family: Vazirmatn;
-      src: url("fonts/Vazirmatn-Bold.woff2") format("woff2");
-      font-weight: 700;
-      font-display: swap;
-    }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; overflow: hidden; }
     body {
       min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: max(12px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
+      display: grid;
+      place-items: center;
+      background: #140e0c;
       font-family: Vazirmatn, Tahoma, sans-serif;
-      color: #b83266;
-      background: linear-gradient(165deg, #ffe3ec 0%, #e9d5ff 46%, #fff5f8 100%);
-    }
-    .sky {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
-      z-index: 0;
-    }
-    .sky span {
-      position: absolute;
-      top: -12vh;
-      width: 16px;
-      height: 26px;
-      border-radius: 70% 20% 70% 20%;
-      background: rgba(255, 133, 173, 0.35);
-      animation: drift 34s linear infinite;
-    }
-    .sky span:nth-child(1) { left: 6%; animation-duration: 38s; }
-    .sky span:nth-child(2) { left: 24%; animation-duration: 44s; animation-delay: -10s; background: rgba(255, 210, 160, 0.4); }
-    .sky span:nth-child(3) { left: 48%; animation-duration: 36s; animation-delay: -18s; }
-    .sky span:nth-child(4) { left: 70%; animation-duration: 42s; animation-delay: -6s; }
-    .sky span:nth-child(5) { left: 88%; animation-duration: 40s; animation-delay: -22s; }
-    .sky i {
-      position: absolute;
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0));
-      animation: glow 12s ease-in-out infinite;
-    }
-    .sky i:nth-child(6) { top: 6%; left: 4%; }
-    .sky i:nth-child(7) { top: 18%; right: 2%; animation-delay: -4s; }
-    @keyframes drift {
-      from { transform: translateY(-10vh) rotate(0deg); }
-      to { transform: translateY(110vh) rotate(40deg); }
-    }
-    @keyframes glow {
-      50% { opacity: 0.45; transform: scale(1.08); }
-    }
-    .note, #stage { position: relative; z-index: 1; }
-    .note {
-      width: min(560px, 100%);
-      margin: 0 0 10px;
-      padding: 12px 16px 10px;
-      text-align: center;
-      background: rgba(255, 249, 244, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      border-radius: 24px;
-      box-shadow: 0 18px 40px rgba(184, 50, 102, 0.12);
-      backdrop-filter: blur(14px);
-    }
-    .note p { margin: 0; }
-    .note .name {
-      font-size: clamp(22px, 6vw, 34px);
-      font-weight: 700;
-      color: #e84a7f;
-      line-height: 1.4;
-    }
-    .note .more {
-      margin-top: 2px;
-      font-size: clamp(14px, 3.5vw, 22px);
-      font-weight: 400;
-      color: #b83266;
-      line-height: 1.6;
     }
     #stage {
-      width: min(100%, calc((100dvh - 168px) * 819 / 1024));
+      width: min(100vw, calc(100dvh * 819 / 1024));
       aspect-ratio: 819 / 1024;
-      filter: drop-shadow(0 18px 36px rgba(184, 50, 102, 0.16));
+      position: relative;
     }
     #photo {
       width: 100%;
       height: 100%;
       display: block;
       object-fit: fill;
-      border-radius: 22px;
       user-select: none;
       -webkit-user-drag: none;
     }
@@ -121,30 +46,100 @@
       pointer-events: none;
     }
     #snow { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .love {
+      position: absolute;
+      top: 1.2%;
+      left: 8%;
+      right: 8%;
+      z-index: 3;
+      margin: 0;
+      text-align: center;
+      pointer-events: none;
+      color: #fff8f4;
+      text-shadow: 0 1px 8px rgba(30, 8, 16, 0.55);
+    }
+    .love span { display: block; font-weight: 400; }
+    .love .a { font-size: clamp(13px, 3.1vw, 18px); letter-spacing: 0.02em; }
+    .love .b { margin-top: 1px; font-size: clamp(10px, 2.35vw, 14px); opacity: 0.92; }
+    .charms {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+    }
+    .charms svg { position: absolute; overflow: visible; }
+    .u1 { width: 54px; top: 7%; left: 1.5%; animation: float 7s ease-in-out infinite; }
+    .u2 { width: 46px; top: 18%; right: 1%; animation: float 8.5s ease-in-out infinite reverse; }
+    .u3 { width: 40px; bottom: 16%; left: 3%; animation: float 9s ease-in-out infinite; }
+    .heart { width: 18px; top: 14%; right: 8%; animation: float 6s ease-in-out infinite; }
+    .star { width: 16px; bottom: 22%; right: 6%; animation: twinkle 3.5s ease-in-out infinite; }
+    .star2 { width: 12px; top: 28%; left: 6%; animation: twinkle 4.2s ease-in-out infinite; }
+    @keyframes float {
+      50% { transform: translateY(-6px); }
+    }
+    @keyframes twinkle {
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+    @media (max-width: 520px) {
+      .u1 { width: 40px; }
+      .u2 { width: 34px; }
+      .u3 { width: 30px; bottom: 12%; }
+    }
   </style>
 </head>
 <body>
-  <div class="sky" aria-hidden="true">
-    <span></span><span></span><span></span><span></span><span></span>
-    <i></i><i></i>
-  </div>
-  <header class="note">
-    <p class="name">نیایش قشنگم</p>
-    <p class="more">خیلییییییییییییییییی دوست دارم نفسم</p>
-  </header>
   <div id="stage">
     <img id="photo" src="globe.jpg" alt="گوی برفی نیایش" width="819" height="1024">
-    <div id="glass">
-      <canvas id="snow"></canvas>
+    <p class="love">
+      <span class="a">نیایش قشنگم</span>
+      <span class="b">خیلییییییییییییییییی دوست دارم نفسم</span>
+    </p>
+    <div id="glass"><canvas id="snow"></canvas></div>
+    <div class="charms" aria-hidden="true">
+      <svg class="u1" viewBox="0 0 64 64">
+        <ellipse cx="26" cy="40" rx="14" ry="9" fill="#ffd0e0"/>
+        <path d="M16 46v9M23 48v8M32 48v8M38 45v10" stroke="#f3b4c8" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M38 36c8-2 14-10 16-16" stroke="#ffd0e0" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="54" cy="18" r="6.5" fill="#ffe4ee"/>
+        <path d="M56 14l5-11-8 8z" fill="#ffd27a"/>
+        <path d="M42 30c3-7 8-10 10-14" fill="none" stroke="#e84a7f" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="56" cy="17" r="1" fill="#6b2748"/>
+      </svg>
+      <svg class="u2" viewBox="0 0 64 64">
+        <ellipse cx="26" cy="40" rx="14" ry="9" fill="#f3c6ff"/>
+        <path d="M16 46v9M23 48v8M32 48v8M38 45v10" stroke="#e2b0ea" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M38 36c8-2 14-10 16-16" stroke="#f3c6ff" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="54" cy="18" r="6.5" fill="#f8e4ff"/>
+        <path d="M56 14l5-11-8 8z" fill="#ffe7a8"/>
+        <path d="M42 30c3-7 8-10 10-14" fill="none" stroke="#d56adf" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="56" cy="17" r="1" fill="#6b2748"/>
+      </svg>
+      <svg class="u3" viewBox="0 0 64 64">
+        <ellipse cx="26" cy="40" rx="14" ry="9" fill="#ffe3ec"/>
+        <path d="M16 46v9M23 48v8M32 48v8M38 45v10" stroke="#f3b4c8" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M38 36c8-2 14-10 16-16" stroke="#ffe3ec" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="54" cy="18" r="6.5" fill="#fff5f8"/>
+        <path d="M56 14l5-11-8 8z" fill="#ffd27a"/>
+        <circle cx="56" cy="17" r="1" fill="#6b2748"/>
+      </svg>
+      <svg class="heart" viewBox="0 0 24 24">
+        <path d="M12 20s-7-4.4-7-9a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 4.6-7 9-7 9z" fill="#ff85ad"/>
+      </svg>
+      <svg class="star" viewBox="0 0 24 24">
+        <path d="M12 2l2.2 6.6H21l-5.4 4 2 6.4L12 16.8 6.4 19l2-6.4L3 8.6h6.8z" fill="#ffd27a"/>
+      </svg>
+      <svg class="star2" viewBox="0 0 24 24">
+        <path d="M12 2l2.2 6.6H21l-5.4 4 2 6.4L12 16.8 6.4 19l2-6.4L3 8.6h6.8z" fill="#fff"/>
+      </svg>
     </div>
   </div>
-  <audio id="song" src="kalimba.wav" loop autoplay playsinline preload="auto"></audio>
+  <audio id="song" src="song.mp3" loop autoplay playsinline preload="auto"></audio>
   <script>
     const glass = document.getElementById("glass");
     const canvas = document.getElementById("snow");
     const ctx = canvas.getContext("2d", { alpha: true });
     const song = document.getElementById("song");
-    song.volume = 0.72;
+    song.volume = 0.85;
     function startSong() {
       const pending = song.play();
       if (pending && pending.catch) pending.catch(function () {});
@@ -155,7 +150,6 @@
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) startSong();
     });
-
     const flakes = [];
     function resize() {
       const r = glass.getBoundingClientRect();
@@ -164,16 +158,16 @@
       canvas.height = Math.max(1, Math.round(r.height * dpr));
     }
     function born(p, anywhere) {
-      p.x = Math.random() * 1.55 - 0.78;
-      p.y = anywhere ? (-0.95 + Math.random() * 1.7) : (-1.05 - Math.random() * 0.25);
-      p.vy = 0.045 + Math.random() * 0.05;
+      p.x = Math.random() * 1.5 - 0.75;
+      p.y = anywhere ? (-0.9 + Math.random() * 1.6) : (-1.05 - Math.random() * 0.2);
+      p.vy = 0.04 + Math.random() * 0.045;
       p.sway = Math.random() * Math.PI * 2;
-      p.swaySpeed = 0.35 + Math.random() * 0.45;
-      p.size = 2.2 + Math.random() * 4.2;
-      p.a = 0.72 + Math.random() * 0.28;
+      p.swaySpeed = 0.3 + Math.random() * 0.4;
+      p.size = 2.4 + Math.random() * 3.6;
+      p.a = 0.78 + Math.random() * 0.22;
     }
     function ensure() {
-      const n = glass.getBoundingClientRect().width < 520 ? 56 : 84;
+      const n = glass.getBoundingClientRect().width < 520 ? 50 : 76;
       while (flakes.length < n) {
         const p = {};
         born(p, true);
@@ -185,25 +179,20 @@
     function draw(now) {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      const w = canvas.width;
-      const h = canvas.height;
-      const cx = w / 2;
-      const cy = h / 2;
-      const R = Math.min(w, h) / 2;
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2;
       ctx.clearRect(0, 0, w, h);
       for (const p of flakes) {
         p.sway += p.swaySpeed * dt;
         p.y += p.vy * dt;
-        p.x += Math.sin(p.sway) * 0.08 * dt;
-        if (p.y > 0.86 || Math.hypot(p.x, p.y) > 0.97) born(p, false);
-        const px = cx + p.x * R * 0.94;
-        const py = cy + p.y * R * 0.94;
-        const size = p.size * (R / 220);
+        p.x += Math.sin(p.sway) * 0.07 * dt;
+        if (p.y > 0.84 || Math.hypot(p.x, p.y) > 0.96) born(p, false);
+        const size = p.size * (R / 230);
         ctx.beginPath();
         ctx.fillStyle = "rgba(255,255,255," + p.a + ")";
-        ctx.shadowColor = "rgba(255,255,255,0.95)";
-        ctx.shadowBlur = size * 2.4;
-        ctx.arc(px, py, size, 0, Math.PI * 2);
+        ctx.shadowColor = "rgba(255,255,255,0.9)";
+        ctx.shadowBlur = size * 2;
+        ctx.arc(cx + p.x * R * 0.92, cy + p.y * R * 0.92, size, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.shadowBlur = 0;
