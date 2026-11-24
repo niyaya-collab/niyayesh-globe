@@ -264,7 +264,13 @@
       audio.tick();
     }
 
-    playBtn.addEventListener("click", startMusic);
+    playBtn.addEventListener("pointerup", (event) => {
+      event.preventDefault();
+      startMusic();
+    });
+    document.getElementById("stage").addEventListener("pointerup", () => {
+      if (!playing) startMusic();
+    });
     window.addEventListener("resize", () => { resize(); ensureFlakes(); });
     document.addEventListener("visibilitychange", () => {
       if (!audio) return;
