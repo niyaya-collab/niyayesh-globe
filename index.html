@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#140e0c">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>گوی نیایش</title>
@@ -14,24 +14,25 @@
       font-display: swap;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; overflow: hidden; background: #140e0c; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #1a120e;
+      background: linear-gradient(180deg, #2c241e 0%, #140e0c 46%, #3a2416 100%);
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+    }
     body { font-family: Vazirmatn, Tahoma, sans-serif; }
-    #wash {
-      position: fixed;
-      inset: -8%;
-      background: url("globe.jpg") center/cover no-repeat;
-      filter: blur(26px) brightness(0.62);
-      transform: scale(1.08);
-    }
-    #photo, #glass, #love {
-      position: absolute;
-    }
+    #photo, #glass, #love { position: absolute; }
     #photo {
+      z-index: 1;
       display: block;
       user-select: none;
       -webkit-user-drag: none;
       max-width: none;
     }
+    #glass, #love { z-index: 2; }
     #glass {
       border-radius: 50%;
       overflow: hidden;
@@ -78,7 +79,6 @@
   </style>
 </head>
 <body>
-  <div id="wash"></div>
   <img id="photo" src="globe.jpg" alt="گوی برفی نیایش" width="819" height="1024">
   <div id="glass"><canvas id="snow"></canvas></div>
   <p id="love">
@@ -199,9 +199,17 @@
     }).catch(function () {});
     startSong(false);
 
+    function viewSize() {
+      const vv = window.visualViewport;
+      return {
+        w: vv ? vv.width : window.innerWidth,
+        h: vv ? vv.height : window.innerHeight
+      };
+    }
     function layout() {
-      const sw = window.innerWidth;
-      const sh = window.innerHeight;
+      const view = viewSize();
+      const sw = view.w;
+      const sh = view.h;
       const scale = Math.min(sw / IW, sh / IH);
       const dw = IW * scale;
       const dh = IH * scale;
@@ -292,6 +300,8 @@
       requestAnimationFrame(draw);
     }
     window.addEventListener("resize", layout);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", layout);
+    photo.addEventListener("load", layout);
     layout();
     ensure();
     requestAnimationFrame(draw);
