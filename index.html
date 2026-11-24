@@ -51,6 +51,30 @@
     }
     #love span { display: block; }
     #love .b { opacity: 0.95; }
+    #hear {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #f8e7c8;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    #hint {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+      opacity: 0;
+    }
+    #hear.wait #hint { opacity: 0.95; }
   </style>
 </head>
 <body>
@@ -61,7 +85,10 @@
     <span class="a">نیایش قشنگم</span>
     <span class="b">خیلیی دوستت دارم</span>
   </p>
-  <audio id="song" src="song.mp3" loop autoplay playsinline preload="auto"></audio>
+  <audio id="song" src="song.mp3" loop playsinline webkit-playsinline preload="auto"></audio>
+  <button id="hear" type="button">
+    <span id="hint">برای شنیدن آهنگ، یک‌بار لمس کن</span>
+  </button>
   <script>
     const IW = 819, IH = 1024;
     const photo = document.getElementById("photo");
@@ -70,17 +97,107 @@
     const ctx = canvas.getContext("2d", { alpha: true });
     const love = document.getElementById("love");
     const song = document.getElementById("song");
-    song.volume = 0.85;
-    function startSong() {
-      const pending = song.play();
-      if (pending && pending.catch) pending.catch(function () {});
+    const hear = document.getElementById("hear");
+    let audioCtx = null;
+    let audioNode = null;
+    let rawSong = null;
+    let decoded = null;
+    let decoding = false;
+    let usingWeb = false;
+    let started = false;
+    let htmlFailed = false;
+
+    function hideHear() {
+      if (hear.isConnected) hear.remove();
     }
-    startSong();
-    window.addEventListener("pointerdown", startSong, true);
-    window.addEventListener("touchstart", startSong, true);
-    document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) startSong();
+    function showHint() {
+      if (hear.isConnected) hear.classList.add("wait");
+    }
+    function markStarted() {
+      started = true;
+      hideHear();
+    }
+    function playBuf() {
+      if (!htmlFailed || started || usingWeb || !audioCtx || audioCtx.state !== "running" || !rawSong) return;
+      const begin = function (buffer) {
+        if (audioNode || started || !htmlFailed) return;
+        const gain = audioCtx.createGain();
+        gain.gain.value = 0.85;
+        audioNode = audioCtx.createBufferSource();
+        audioNode.buffer = buffer;
+        audioNode.loop = true;
+        audioNode.connect(gain);
+        gain.connect(audioCtx.destination);
+        audioNode.start(0);
+        usingWeb = true;
+        song.pause();
+        markStarted();
+      };
+      if (decoded) {
+        begin(decoded);
+        return;
+      }
+      if (decoding) return;
+      decoding = true;
+      audioCtx.decodeAudioData(rawSong.slice(0)).then(function (buffer) {
+        decoded = buffer;
+        decoding = false;
+        begin(buffer);
+      }).catch(function () {
+        decoding = false;
+        showHint();
+      });
+    }
+    function armContext() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC || started) return;
+      if (!audioCtx) audioCtx = new AC();
+      const pending = audioCtx.resume();
+      if (pending && pending.then) pending.then(playBuf);
+    }
+    function startSong(fromUser) {
+      if (usingWeb || started) return;
+      song.muted = false;
+      song.volume = 0.85;
+      const pending = song.play();
+      if (!pending || !pending.then) return;
+      pending.then(function () {
+        if (!song.paused) {
+          markStarted();
+          if (audioCtx && !usingWeb) {
+            audioCtx.close();
+            audioCtx = null;
+          }
+        } else if (fromUser) {
+          htmlFailed = true;
+          showHint();
+          playBuf();
+        } else showHint();
+      }).catch(function () {
+        showHint();
+        if (fromUser) {
+          htmlFailed = true;
+          playBuf();
+        }
+      });
+    }
+    function unlock() {
+      startSong(true);
+      armContext();
+    }
+    song.addEventListener("playing", function () {
+      if (!song.muted && !usingWeb) markStarted();
     });
+    hear.addEventListener("pointerdown", unlock);
+    hear.addEventListener("click", unlock);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) startSong(htmlFailed);
+    });
+    fetch("song.mp3").then(function (res) { return res.arrayBuffer(); }).then(function (buf) {
+      rawSong = buf;
+      if (htmlFailed && !started) playBuf();
+    }).catch(function () {});
+    startSong(false);
 
     function layout() {
       const sw = window.innerWidth;
